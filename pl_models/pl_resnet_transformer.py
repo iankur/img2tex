@@ -7,7 +7,7 @@ from pytorch_lightning import LightningModule
 
 from dataloader.utils import Tokenizer
 from models import ResNetTransformer
-from .metrics import CharacterErrorRate
+from .metrics import CharacterErrorRate, SentenceErrorRate
 
 
 class PlResNetTransformer(LightningModule):
@@ -48,6 +48,8 @@ class PlResNetTransformer(LightningModule):
         self.loss_fn = nn.CrossEntropyLoss(ignore_index=self.tokenizer.pad_index)
         self.val_cer = CharacterErrorRate(self.tokenizer.ignore_indices)
         self.test_cer = CharacterErrorRate(self.tokenizer.ignore_indices)
+        self.val_ser = SentenceErrorRate(self.tokenizer.ignore_indices)
+        self.test_ser = SentenceErrorRate(self.tokenizer.ignore_indices)
 
     def training_step(self, batch, batch_idx):
         imgs, targets = batch
@@ -65,12 +67,16 @@ class PlResNetTransformer(LightningModule):
         preds = self.model.predict(imgs)
         val_cer = self.val_cer(preds, targets)
         self.log("val/cer", val_cer)
+        val_ser = self.val_ser(preds, targets)
+        self.log("val/ser", val_ser)
 
     def test_step(self, batch, batch_idx):
         imgs, targets = batch
         preds = self.model.predict(imgs)
         test_cer = self.test_cer(preds, targets)
         self.log("test/cer", test_cer)
+        test_ser = self.test_ser(preds, targets)
+        self.log("test/ser", test_ser)
         return preds
 
     def test_epoch_end(self, test_outputs):
