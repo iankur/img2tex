@@ -45,7 +45,7 @@ class SentenceErrorRate(Metric):
             target = [token for token in targets[i].tolist() if token not in self.ignore_indices]
             distance = editdistance.distance(pred, target)
             if max(len(pred), len(target)) > 0:
-                self.error += (pred == target)
+                self.error += (pred != target)
         self.total += N
 
     def compute(self) -> Tensor:
